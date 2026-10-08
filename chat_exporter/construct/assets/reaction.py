@@ -20,6 +20,14 @@ class Reaction:
         return self.reaction
 
     async def build_reaction(self):
+        try:
+            reactors = [user.display_name async for user in self.reaction.users(limit=10)]
+            self.reactors_str = "<br>".join(reactors)
+            if self.reaction.count > 10:
+                self.reactors_str += f"<br>...and {self.reaction.count - 10} others"
+        except Exception:
+            self.reactors_str = ""
+
         if ":" in str(self.reaction.emoji):
             emoji_animated = re.compile(r"&lt;a:.*:.*&gt;")
             if emoji_animated.search(str(self.reaction.emoji)):
@@ -39,6 +47,7 @@ class Reaction:
                 ("EMOJI", str(emoji_id), PARSE_MODE_NONE),
                 ("EMOJI_COUNT", str(self.reaction.count), PARSE_MODE_NONE),
                 ("EMOJI_FILE", emoji_type, PARSE_MODE_NONE),
+                ("REACTORS", self.reactors_str, PARSE_MODE_NONE),
             ],
         )
 
@@ -47,5 +56,10 @@ class Reaction:
         self.reaction = await fill_out(
             self.guild,
             emoji,
-            [("EMOJI", str(react_emoji), PARSE_MODE_NONE), ("EMOJI_COUNT", str(self.reaction.count), PARSE_MODE_NONE)],
+            [
+                ("EMOJI", str(react_emoji), PARSE_MODE_NONE), 
+                ("EMOJI_COUNT", str(self.reaction.count), PARSE_MODE_NONE),
+                ("REACTORS", self.reactors_str, PARSE_MODE_NONE),
+            ],
         )
+

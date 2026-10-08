@@ -46,6 +46,13 @@ class ParseMarkdown:
         nodes = ast.parse(self.content)
         self.content = "".join(n.render(self.guild, self.bot) for n in nodes)
         await self.parse_emoji()
+
+        content_no_emojis = re.sub(r'<img class="emoji emoji--small"[^>]*>', '', self.content)
+        content_no_emojis = content_no_emojis.replace('<br>', '').strip()
+        
+        if not content_no_emojis:
+            self.content = self.content.replace('emoji--small', 'emoji--large')
+
         return self.content
 
     async def link_embed_flow(self):
